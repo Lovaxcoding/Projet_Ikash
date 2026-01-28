@@ -1,9 +1,18 @@
 import os
 from dotenv import load_dotenv
-from sqlmodel import create_engine, SQLModel
+from sqlmodel import create_engine, SQLModel, Session
+from app.models.enums import RoleType, OperatorType, TransactionType, TransactionStatus
+from app.models.profile import Profile
+from app.models.transaction import Transaction
+from app.models.log import LogActivite 
+
 
 # On charge le .env qui est dans le dossier parent (backend/)
 load_dotenv()
+def get_session():
+    with Session(engine) as session:
+        yield session
+
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
