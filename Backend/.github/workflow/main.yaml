@@ -20,18 +20,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          # On se déplace dans Backend pour installer les dépendances
+          pip install -r Backend/requirements.txt
 
       - name: Lint with flake8
         run: |
           pip install flake8
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # On vérifie uniquement le dossier Backend
+          flake8 Backend/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
-  # Section CD (Déploiement) - À décommenter une fois ton hébergeur choisi
-  # deploy:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Deploy to Cloud
-  #       run: echo "Déploiement en cours..."
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Render
+        run: |
+          curl -f ${{ secrets.RENDER_DEPLOY_HOOK }}
