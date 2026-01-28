@@ -1,6 +1,9 @@
 import os
 from dotenv import load_dotenv
 from sqlmodel import create_engine, SQLModel
+from app.models.enums import RoleType, OperatorType, TransactionType, TransactionStatus
+from app.models.profile import Profile
+from app.models.transaction import Transaction
 
 # On charge le .env qui est dans le dossier parent (backend/)
 load_dotenv()

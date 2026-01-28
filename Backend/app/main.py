@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from app.database import create_db_and_tables
 from app.routers import transaction_router
 from scalar_fastapi import get_scalar_api_reference
+from app.routers import sms_router, profile_router
+from fastapi import Depends
+from app.security.get_api_key import get_api_key
 
 
 app = FastAPI(
@@ -17,10 +20,15 @@ app = FastAPI(
 def on_startup():
     create_db_and_tables()
 
-
+# Inclusion des routeurs
 app.include_router(
     transaction_router.router
 )
+app.include_router(
+    sms_router.router
+)
+app.include_router(profile_router.router, dependencies=[Depends(get_api_key)])
+
 @app.get("/scalar", include_in_schema=False)
 async def scalar_html():
     return get_scalar_api_reference(
