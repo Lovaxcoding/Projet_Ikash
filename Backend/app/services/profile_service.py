@@ -3,14 +3,45 @@ from app.models import Profile
 from app.models.enums import RoleType
 from uuid import UUID
 from typing import List, Optional
+from app.models.log import LogActivite
+
+# Service pour gérer les profils (Admins et Agents)
+def update_agent_balance_with_log(session: Session, admin_id: UUID, agent_id: UUID, amount: float):
+    agent = session.get(Profile, agent_id)
+    if not agent:
+        return None
+
+    ancien = agent.solde_courant
+    agent.solde_courant += amount
+    nouveau = agent.solde_courant
+
+    # On crée le log
+    log = LogActivite(
+        admin_id=admin_id,
+        agent_id=agent_id,
+        action="MODIFICATION_SOLDE",
+        ancien_solde=ancien,
+        nouveau_solde=nouveau
+    )
+
+    session.add(agent)
+    session.add(log) # On enregistre les deux en même temps !
+    session.commit()
+    return agent
 
 
 def create_new_profile(session: Session, profile_data: Profile) -> Profile:
-    """
-    Crée un profil (Admin ou Agent).
-    Si c'est un agent, il doit idéalement avoir un admin_id.
-    """
+    # 1. On crée le profil
     session.add(profile_data)
+
+    # 2. On crée manuellement le log de l'événement
+    nouveau_log = LogActivite(
+        agent_id=profile_data.id,
+        action="CREATION_COMPTE",
+        nouveau_solde=profile_data.solde_courant,
+    )
+    session.add(nouveau_log)
+
     session.commit()
     session.refresh(profile_data)
     return profile_data
